@@ -1,10 +1,7 @@
 package com.hdv.payment;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -13,7 +10,8 @@ import java.util.Optional;
 import java.util.TreeMap;
 
 @RestController
-@RequestMapping("/payment/vnpay")
+@RequestMapping("/api/payment")
+@CrossOrigin(origins = "http://localhost:3000") // cho phép React gọi
 public class VnpayController {
 
     private final PaymentTransactionRepository repo;

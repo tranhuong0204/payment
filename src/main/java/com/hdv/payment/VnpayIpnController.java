@@ -2,10 +2,7 @@ package com.hdv.payment;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -16,12 +13,14 @@ public class VnpayIpnController {
 
     private final PaymentTransactionRepository repo;
     private static final String VNP_HASHSECRET = "5P56F0FIWJVCRBST3WQH4EW6T2TKXT0M";
+    private final OrderCallbackService orderCallbackService = new OrderCallbackService();
 
     public VnpayIpnController(PaymentTransactionRepository repo) {
         this.repo = repo;
     }
 
     @PostMapping("/ipn")
+    @GetMapping("/ipn")
     public ResponseEntity<String> ipn(@RequestParam Map<String, String> params) {
         String secureHash = params.get("vnp_SecureHash");
         params.remove("vnp_SecureHash");
@@ -47,6 +46,19 @@ public class VnpayIpnController {
         if ("00".equals(responseCode)) {
             tx.setStatus("SUCCESS");
             // TODO: call-back sang Main Project để cập nhật hóa đơn/đơn hàng
+            if ("00".equals(responseCode)) {
+                tx.setStatus("SUCCESS");
+                repo.save(tx);
+
+                // callback sang Main Project
+                orderCallbackService.updateOrderStatus(orderId, "PAID");
+            } else {
+                tx.setStatus("FAILED");
+                repo.save(tx);
+
+                orderCallbackService.updateOrderStatus(orderId, "FAILED");
+            }
+
         } else {
             tx.setStatus("FAILED");
         }
