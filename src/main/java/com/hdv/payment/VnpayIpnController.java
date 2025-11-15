@@ -3,12 +3,15 @@ package com.hdv.payment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 
 
 @RestController
 @RequestMapping("/payment/vnpay")
+@CrossOrigin(origins = "http://localhost:3000") // cho phép React gọi
+
 public class VnpayIpnController {
 
     private final PaymentTransactionRepository repo;
@@ -43,25 +46,42 @@ public class VnpayIpnController {
         tx.setVnpTransactionNo(transactionNo);
         tx.setAmount(Long.parseLong(params.getOrDefault("vnp_Amount", "0")) / 100);
 
+//        if ("00".equals(responseCode)) {
+//            tx.setStatus("SUCCESS");
+//            // TODO: call-back sang Main Project để cập nhật hóa đơn/đơn hàng
+//            if ("00".equals(responseCode)) {
+//                tx.setStatus("SUCCESS");
+//                repo.save(tx);
+//
+//                // callback sang Main Project
+//                orderCallbackService.updateOrderStatus(orderId, "PAID");
+//            } else {
+//                tx.setStatus("FAILED");
+//                repo.save(tx);
+//
+//                orderCallbackService.updateOrderStatus(orderId, "FAILED");
+//            }
+//
+//        } else {
+//            tx.setStatus("FAILED");
+//        }
         if ("00".equals(responseCode)) {
             tx.setStatus("SUCCESS");
-            // TODO: call-back sang Main Project để cập nhật hóa đơn/đơn hàng
-            if ("00".equals(responseCode)) {
-                tx.setStatus("SUCCESS");
-                repo.save(tx);
+            repo.save(tx);
 
-                // callback sang Main Project
-                orderCallbackService.updateOrderStatus(orderId, "PAID");
-            } else {
-                tx.setStatus("FAILED");
-                repo.save(tx);
-
-                orderCallbackService.updateOrderStatus(orderId, "FAILED");
-            }
-
+            // callback sang Main Project
+            RestTemplate restTemplate = new RestTemplate();
+            OrderStatusUpdateRequest req = new OrderStatusUpdateRequest(orderId, "PAID");
+            restTemplate.postForObject("http://localhost:8080/api/orders/update-status", req, String.class);
         } else {
             tx.setStatus("FAILED");
+            repo.save(tx);
+
+            RestTemplate restTemplate = new RestTemplate();
+            OrderStatusUpdateRequest req = new OrderStatusUpdateRequest(orderId, "FAILED");
+            restTemplate.postForObject("http://localhost:8080/api/orders/update-status", req, String.class);
         }
+
 
         repo.save(tx);
         return ResponseEntity.ok("OK");
