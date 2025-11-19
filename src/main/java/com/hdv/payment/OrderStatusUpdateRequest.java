@@ -7,6 +7,7 @@ public class OrderStatusUpdateRequest {
     public OrderStatusUpdateRequest(String orderId, String status) {
         this.orderId = orderId;
         this.status = status;
+
     }
 
     public String getOrderId() {

@@ -14,7 +14,6 @@ import java.util.TreeMap;
 @CrossOrigin(origins = "http://localhost:3000") // cho phép React gọi
 public class VnpayController {
 
-
     private final PaymentTransactionRepository repo;
 
     public VnpayController(PaymentTransactionRepository repo) {

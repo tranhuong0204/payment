@@ -9,5 +9,6 @@ public class PaymentCreateResponse {
 
     public void setPaymentUrl(String paymentUrl) {
         this.paymentUrl = paymentUrl;
+
     }
 }

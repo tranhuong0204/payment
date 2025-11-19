@@ -12,7 +12,6 @@ public class OrderCallbackService {
 //        String url = "http://localhost:8080/api/orders/update-status";
         String url = "http://localhost:8080/payment/callback/vnpay";
 
-
         // payload gửi sang Main Project
         OrderStatusUpdateRequest request = new OrderStatusUpdateRequest(orderId, status);
 

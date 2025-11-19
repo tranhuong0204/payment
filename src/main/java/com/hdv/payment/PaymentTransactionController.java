@@ -15,6 +15,7 @@ public class PaymentTransactionController {
 
     public PaymentTransactionController(PaymentTransactionRepository repo) {
         this.repo = repo;
+
     }
 
     // Lấy tất cả transaction

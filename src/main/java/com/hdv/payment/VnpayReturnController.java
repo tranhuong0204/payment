@@ -19,6 +19,7 @@ public class VnpayReturnController {
 
     public VnpayReturnController(PaymentTransactionRepository repo) {
         this.repo = repo;
+
     }
 
     @GetMapping("/return")
