@@ -10,8 +10,8 @@ import java.util.Optional;
 import java.util.TreeMap;
 
 @RestController
-@RequestMapping("/api/payment")
-@CrossOrigin(origins = "http://localhost:3000") // cho phép React gọi
+@RequestMapping("/payment/vnpay")
+@CrossOrigin(origins = "http://localhost:5173")
 public class VnpayController {
 
     private final PaymentTransactionRepository repo;
@@ -27,7 +27,6 @@ public class VnpayController {
 
     @PostMapping("/create")
     public ResponseEntity<PaymentCreateResponse> create(@RequestBody PaymentCreateRequest req) {
-
         Map<String, String> params = new TreeMap<>();
         params.put("vnp_Version", "2.1.0");
         params.put("vnp_Command", "pay");
@@ -38,22 +37,13 @@ public class VnpayController {
         params.put("vnp_OrderType", "other");
         params.put("vnp_Locale", "vn");
         params.put("vnp_CurrCode", "VND");
-//        params.put("vnp_ReturnUrl", req.getReturnUrl()); // về frontend của Main Project
-        params.put("vnp_ReturnUrl", "http://localhost:8081/payment/vnpay/return");
-
-//        params.put("vnp_IpnUrl", "http://localhost:8081/payment/vnpay/ipn"); //trả về inp
-
+        params.put("vnp_ReturnUrl", req.getReturnUrl()); // về frontend của Main Project
         params.put("vnp_IpAddr", Optional.ofNullable(req.getIpAddress()).orElse("127.0.0.1"));
         params.put("vnp_CreateDate", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
 
         String query = VnpUtils.buildQuery(params);
         String secureHash = VnpUtils.hmacSHA512(VNP_HASHSECRET, query);
-        System.out.println("Query: " + query);
-        System.out.println("MyHash: " + secureHash);
-
         String paymentUrl = VNP_URL + "?" + query + "&vnp_SecureHash=" + secureHash;
-
-
 
         // Lưu transaction PENDING
         PaymentTransaction tx = new PaymentTransaction();
@@ -62,11 +52,16 @@ public class VnpayController {
         tx.setStatus("PENDING");
         repo.save(tx);
 
-//        System.out.println("Query: " + query);
-//        System.out.println("MyHash: " + secureHash);
         PaymentCreateResponse res = new PaymentCreateResponse();
         res.setPaymentUrl(paymentUrl);
         return ResponseEntity.ok(res);
+    }
+
+    @GetMapping("/status/{orderId}")
+    public ResponseEntity<PaymentTransaction> status(@PathVariable String orderId) {
+        return repo.findByOrderId(orderId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }
 

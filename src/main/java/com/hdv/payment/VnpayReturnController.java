@@ -12,6 +12,7 @@ import java.util.Map;
 
 @Controller //để redirect hoạt động
 @RequestMapping("/payment/vnpay")
+// @CrossOrigin(origins = "http://localhost:3000") // cho phép React gọi
 public class VnpayReturnController {
 
     private final PaymentTransactionRepository repo;
@@ -71,11 +72,12 @@ public class VnpayReturnController {
             e.printStackTrace(); // không chặn redirect nếu sync lỗi
         }
 
-        // 5) Redirect to onlineCourses (8080)
+        // 5) Redirect back to Checkout page (Vite dev server)
+        String baseFrontend = "http://localhost:3000"; // adjust if deployed
         if ("SUCCESS".equals(tx.getStatus())) {
-            return "redirect:http://localhost:3000/CourseList?payment=success&orderId=" + orderId + "&amount=" + amount;
+            return "redirect:" + baseFrontend + "/checkout?payment=success&orderId=" + orderId + "&amount=" + amount;
         } else {
-            return "redirect:http://localhost:3000/CourseList?payment=failed&orderId=" + orderId + "&code=" + responseCode;
+            return "redirect:" + baseFrontend + "/checkout?payment=failed&orderId=" + orderId + "&code=" + responseCode;
         }
     }
 }
